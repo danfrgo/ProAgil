@@ -5,8 +5,7 @@ using System.Threading.Tasks;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
-using ProAgil.WebAPI.Data;
-using ProAgil.WebAPI.Model;
+using ProAgil.Repository;
 
 namespace ProAgil.WebAPI.Controllers
 {
@@ -14,8 +13,8 @@ namespace ProAgil.WebAPI.Controllers
     [ApiController]
     public class ValuesController : ControllerBase
     {
-        public DataContext _context { get; } //isto tambem é igual "public readonly DataContext Context";
-        public ValuesController(DataContext context)
+        public ProAgilContext _context { get; } //isto tambem é igual "public readonly ProAgilContext Context";
+        public ValuesController(ProAgilContext context)
         {
             _context = context;
         }
@@ -25,7 +24,7 @@ namespace ProAgil.WebAPI.Controllers
         //public ActionResult<IEnumerable<Evento>> Get()//"ActionResult" é padrao do MVC utilizando RAZOR e ja retorna uma View
         public async Task<IActionResult> Get()
         {
-             try
+            try
             {
                 var results = await _context.Eventos.ToListAsync();
                 return Ok(results); //Status code 200 do Https
@@ -33,22 +32,22 @@ namespace ProAgil.WebAPI.Controllers
             catch (System.Exception)
             {
                 return this.StatusCode(StatusCodes.Status500InternalServerError, "Base de dados falhou");
-            }          
+            }
         }
 
         // GET api/values/5
         [HttpGet("{id}")]
         public async Task<IActionResult> Get(int id)
         {
-             try
+            try
             {
-                var results = await _context.Eventos.FirstOrDefaultAsync(x => x.EventoId == id);
+                var results = await _context.Eventos.FirstOrDefaultAsync(x => x.Id == id);
                 return Ok(results); //Status code 200 do Https
             }
             catch (System.Exception)
             {
                 return this.StatusCode(StatusCodes.Status500InternalServerError, "Base de dados falhou");
-            }          
+            }
         }
 
         // POST api/values
