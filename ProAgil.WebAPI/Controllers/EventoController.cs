@@ -116,7 +116,7 @@ namespace ProAgil.WebAPI.Controllers
 
         // Put api/values/5
         //atualizar evento
-        [HttpPut]
+        [HttpPut("{EventoId}")]
         //public ActionResult<IEnumerable<Evento>> Get()//"ActionResult" é padrao do MVC utilizando RAZOR e ja retorna uma View
         public async Task<IActionResult> Put(int EventoId, Evento model)
         {
@@ -152,7 +152,7 @@ namespace ProAgil.WebAPI.Controllers
 
         // Delete api/values/5
         //apagar evento
-        [HttpDelete]
+        [HttpDelete("{EventoId}")]
         //public ActionResult<IEnumerable<Evento>> Get()//"ActionResult" é padrao do MVC utilizando RAZOR e ja retorna uma View
         public async Task<IActionResult> Delete(int EventoId)
         {

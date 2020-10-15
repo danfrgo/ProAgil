@@ -22,9 +22,23 @@ getEventoByTema(tema: string): Observable<Evento[]>{
   return this.http.get<Evento[]>('${this.baseURL}/getByTema/${tema}'); // criar URL
 }
 
-//eventos por Id
+// eventos por Id
 getEventoById(id: number): Observable<Evento[]>{
   return this.http.get<Evento[]>('${this.baseURL}/${id}'); // criar URL
 }
 
+// criar eventos
+postEvento(evento: Evento){
+  return this.http.post(this.baseURL, evento); // criar URL , o evento ve do eventos.ts -> metodo salvarAlteracao
+}
+
+// update eventos
+putEvento(evento: Evento) {
+  return this.http.put(`${this.baseURL}/${evento.id}`, evento); // criar URL , o evento ve do eventos.ts -> metodo salvarAlteracao
+}
+
+// apagar eventos
+deleteEvento(id: number) {
+  return this.http.delete(`${this.baseURL}/${id}`);
+}
 }
