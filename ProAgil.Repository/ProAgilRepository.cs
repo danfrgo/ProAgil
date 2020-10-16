@@ -50,7 +50,7 @@ namespace ProAgil.Repository
             }
             //AsNoTracking() -> para noao travar o recurso para que ele seja retornado
             query = query.AsNoTracking()
-            .OrderByDescending(c => c.DataEvento);
+            .OrderBy(c => c.Id);
 
             return await query.ToArrayAsync();
         }
@@ -140,6 +140,5 @@ namespace ProAgil.Repository
 
             return await query.ToArrayAsync();
         }
-
     }
 }

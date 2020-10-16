@@ -7,6 +7,7 @@ namespace ProAgil.Domain
         public string URL { get; set; }
         public int? EventoId { get; set; }
         public Evento Evento { get; } //so readonly, nao tem set
+         public int? PalestranteId { get; set; }
         public Palestrante Palestrante { get; } //so readonly, nao tem set
 
     }

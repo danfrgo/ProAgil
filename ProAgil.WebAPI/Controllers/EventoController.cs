@@ -1,8 +1,11 @@
+using System.Collections.Generic;
 using System.Threading.Tasks;
+using AutoMapper;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using ProAgil.Domain;
 using ProAgil.Repository;
+using ProAgil.WebAPI.Dtos;
 
 namespace ProAgil.WebAPI.Controllers
 {
@@ -14,8 +17,10 @@ namespace ProAgil.WebAPI.Controllers
         public readonly IProAgilRepository _repo;
         //injeçao de dependencia => para injetar o repository (todos os metodos desenvolvidos)
         //no startup ja nao requisita o context mas requita sim a interface de repositorio
-        public EventoController(IProAgilRepository repo)
+        public readonly IMapper _mapper;
+        public EventoController(IProAgilRepository repo, IMapper mapper)
         {
+            _mapper = mapper;
             _repo = repo;
         }
 
@@ -27,13 +32,16 @@ namespace ProAgil.WebAPI.Controllers
         {
             try
             {
-                var results = await _repo.GetAllEventoAsync(true);
+                var eventos = await _repo.GetAllEventoAsync(true);
+                //IEnumerable porque quero retornar uma lista
+                var results = _mapper.Map<EventoDto[]>(eventos);
+                
                 return Ok(results); //Status code 200 do Https
             }
-            catch (System.Exception)
+            catch (System.Exception ex)
             {
-                return this.StatusCode(StatusCodes.Status500InternalServerError, "Base de dados falhou");
-            }
+                return this.StatusCode(StatusCodes.Status500InternalServerError, $"Base de dados falhou {ex.Message}");
+            } 
         }
 
         /* Gets
@@ -50,7 +58,10 @@ namespace ProAgil.WebAPI.Controllers
         {
             try
             {
-                var results = await _repo.GetEventoAsyncById(EventoId, true);
+                var evento = await _repo.GetEventoAsyncById(EventoId, true);
+
+                var results = _mapper.Map<EventoDto>(evento);
+
                 return Ok(results); //Status code 200 do Https
             }
             catch (System.Exception)
@@ -67,7 +78,10 @@ namespace ProAgil.WebAPI.Controllers
         {
             try
             {
-                var results = await _repo.GetAllEventoAsyncByTema(tema, true);
+                var eventos = await _repo.GetAllEventoAsyncByTema(tema, true);
+
+                var results = _mapper.Map<EventoDto[]>(eventos);
+
                 return Ok(results); //Status code 200 do Https
             }
             catch (System.Exception)
@@ -86,23 +100,26 @@ namespace ProAgil.WebAPI.Controllers
         //criar evento
         [HttpPost]
         //public ActionResult<IEnumerable<Evento>> Get()//"ActionResult" é padrao do MVC utilizando RAZOR e ja retorna uma View
-        public async Task<IActionResult> Post(Evento model)
+        public async Task<IActionResult> Post(EventoDto model)
         {
             try
             {
-                _repo.Add(model);
+                var evento = _mapper.Map<Evento>(model);
+
+                _repo.Add(evento);
 
                 if (await _repo.SaveChangesAsync())
                 {
                     //tou a chamar a rota [HttpGet("{EventoId}")], porque estou a..
                     //..utilizar o Created
-                    return Created($"/api/evento/{model.Id}", model);
+                    return Created($"/api/evento/{model.Id}", _mapper.Map<EventoDto>(evento));
                 }
             }
 
-            catch (System.Exception)
+            catch (System.Exception ex) 
             {
-                return this.StatusCode(StatusCodes.Status500InternalServerError, "Base de dados falhou");
+                return this.StatusCode(StatusCodes.Status500InternalServerError, 
+                $"Base de dados falhou {ex.Message}");
             }
             return BadRequest();
         }
@@ -118,15 +135,15 @@ namespace ProAgil.WebAPI.Controllers
         //atualizar evento
         [HttpPut("{EventoId}")]
         //public ActionResult<IEnumerable<Evento>> Get()//"ActionResult" é padrao do MVC utilizando RAZOR e ja retorna uma View
-        public async Task<IActionResult> Put(int EventoId, Evento model)
+        public async Task<IActionResult> Put(int EventoId, EventoDto model)
         {
             try
             {
                 var evento = await _repo.GetEventoAsyncById(EventoId, false);
-                if (evento == null)
-                { //se nao for encontrado nenhum evento, entao da um NotFound
-                    return NotFound();
-                }
+                if (evento == null) return NotFound();
+                
+
+                _mapper.Map(model, evento);
 
                 _repo.Update(model);
 
@@ -135,12 +152,12 @@ namespace ProAgil.WebAPI.Controllers
                 {
                     //tou a chamar a rota [HttpGet("{EventoId}")], porque estou a..
                     //..utilizar o Created
-                    return Created($"/api/evento/{model.Id}", model);
+                    return Created($"/api/evento/{model.Id}", _mapper.Map<EventoDto>(evento));
                 }
             }
-            catch (System.Exception)
+            catch (System.Exception ex)
             {
-                return this.StatusCode(StatusCodes.Status500InternalServerError, "Base de dados falhou");
+                return this.StatusCode(StatusCodes.Status500InternalServerError, $"Base de dados falhou {ex.Message}");
             }
             return BadRequest();
         }
