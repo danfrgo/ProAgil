@@ -7,14 +7,19 @@ import { BsLocaleService } from 'ngx-bootstrap/datepicker';
 import { ptBrLocale } from 'ngx-bootstrap/locale';
 import { defineLocale } from 'ngx-bootstrap/chronos';
 import { templateJitUrl } from '@angular/compiler';
+import { ToastrService } from 'ngx-toastr';
 defineLocale('pt-br', ptBrLocale);
 
 @Component({
   selector: 'app-eventos',
   templateUrl: './eventos.component.html',
-  styleUrls: ['./eventos.component.scss'],
+  styleUrls: ['./eventos.component.css']
 })
+
+
 export class EventosComponent implements OnInit {
+  titulo = 'Eventos';
+
   eventosFiltrados: Evento[];
 
   eventos: Evento[];
@@ -28,13 +33,14 @@ export class EventosComponent implements OnInit {
   bodyDeletarEvento = '';
 
   _filtroLista = '';
-  //_filtroLista: string ='';
+  // filtroLista: string ='';
 
   constructor(
     private eventoService: EventoService,
     private modalService: BsModalService,
     private fb: FormBuilder,
-    private localeService: BsLocaleService
+    private localeService: BsLocaleService,
+    private toastr: ToastrService
   ) {
     this.localeService.use('pt-br');
   }
@@ -75,7 +81,9 @@ this.eventoService.deleteEvento(this.evento.id).subscribe(
   () => {
     template.hide();
     this.getEventos();
+    this.toastr.success('Removido com sucesso');
   }, error => {
+    this.toastr.error('Erro ao tentar apagar');
     console.log(error);
   }
 );
@@ -129,21 +137,24 @@ this.eventoService.deleteEvento(this.evento.id).subscribe(
           (novoEvento: Evento) => {
             template.hide();
             this.getEventos();
+            this.toastr.success('Inserido com sucesso');
           },
           (error) => {
-            console.log(error);
+            this.toastr.error(`Erro ao inserir: ${error}`);
           }
-        ); //subscribe porque é observable
+        ); // subscribe porque é observable
       } else {
         this.evento = Object.assign({id: this.evento.id}, this.registerForm.value);
         this.eventoService.putEvento(this.evento).subscribe(
           () => {
             template.hide();
             this.getEventos();
+            this.toastr.success('Editado com sucesso');
           }, (error) => {
-            console.log(error);
+            this.toastr.error(`Erro ao editar: ${error}`);
+            // console.log(error);
           }
-        ); //subscribe porque é observable
+        ); // subscribe porque é observable
       }
     }
   }
@@ -154,10 +165,11 @@ this.eventoService.deleteEvento(this.evento.id).subscribe(
       (_eventos: Evento[]) => {
         this.eventos = _eventos;
         this.eventosFiltrados = this.eventos;
-        console.log(_eventos);
+        // console.log(_eventos);
       },
       (error) => {
-        console.log(error);
+        // console.log(error);
+        this.toastr.error(`Erro ao tentar carregar eventos: ${error}`);
       }
     );
   }
