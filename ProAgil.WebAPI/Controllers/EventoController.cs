@@ -1,4 +1,6 @@
 using System.Collections.Generic;
+using System.IO;
+using System.Net.Http.Headers;
 using System.Threading.Tasks;
 using AutoMapper;
 using Microsoft.AspNetCore.Http;
@@ -35,13 +37,45 @@ namespace ProAgil.WebAPI.Controllers
                 var eventos = await _repo.GetAllEventoAsync(true);
                 //IEnumerable porque quero retornar uma lista
                 var results = _mapper.Map<EventoDto[]>(eventos);
-                
+
                 return Ok(results); //Status code 200 do Https
             }
             catch (System.Exception ex)
             {
                 return this.StatusCode(StatusCodes.Status500InternalServerError, $"Base de dados falhou {ex.Message}");
-            } 
+            }
+        }
+        
+        [HttpPost("upload")]
+        public async Task<IActionResult> Upload()
+        {
+            try
+            {
+                //para receber os ficheiros, todos os ficheiros vêm como array -> primeira posicao [0]
+                var file = Request.Form.Files[0];
+                var folderName = Path.Combine("Resources", "Images");
+                var pathToSave = Path.Combine(Directory.GetCurrentDirectory(), folderName);
+
+                // se o file existe ou seja, se  o array dele for maior que zero
+                if (file.Length > 0)
+                {
+                    var filename = ContentDispositionHeaderValue.Parse(file.ContentDisposition).FileName;
+                    var fullPath = Path.Combine(pathToSave, filename.Replace(" \"", " ").Trim());
+
+                    using (var stream = new FileStream(fullPath, FileMode.Create))
+                    {
+                        file.CopyTo(stream);
+                       //await file.CopyToAsync(stream);
+                    }
+                }
+
+                return Ok(); //Status code 200 do Https
+            }
+            catch (System.Exception ex)
+            {
+                return this.StatusCode(StatusCodes.Status500InternalServerError, $"Base de dados falhou {ex.Message}");
+            }
+            return BadRequest("Erro ao tentar realizar upload");
         }
 
         /* Gets
@@ -116,9 +150,9 @@ namespace ProAgil.WebAPI.Controllers
                 }
             }
 
-            catch (System.Exception ex) 
+            catch (System.Exception ex)
             {
-                return this.StatusCode(StatusCodes.Status500InternalServerError, 
+                return this.StatusCode(StatusCodes.Status500InternalServerError,
                 $"Base de dados falhou {ex.Message}");
             }
             return BadRequest();
@@ -141,7 +175,7 @@ namespace ProAgil.WebAPI.Controllers
             {
                 var evento = await _repo.GetEventoAsyncById(EventoId, false);
                 if (evento == null) return NotFound();
-                
+
 
                 _mapper.Map(model, evento);
 

@@ -13,10 +13,8 @@ defineLocale('pt-br', ptBrLocale);
 @Component({
   selector: 'app-eventos',
   templateUrl: './eventos.component.html',
-  styleUrls: ['./eventos.component.css']
+  styleUrls: ['./eventos.component.css'],
 })
-
-
 export class EventosComponent implements OnInit {
   titulo = 'Eventos';
 
@@ -32,8 +30,13 @@ export class EventosComponent implements OnInit {
   registerForm: FormGroup;
   bodyDeletarEvento = '';
 
+  file: File;
+
   _filtroLista = '';
   // filtroLista: string ='';
+  fileNameToUpdate: string;
+  dataAtual: string;
+
 
   constructor(
     private eventoService: EventoService,
@@ -61,8 +64,10 @@ export class EventosComponent implements OnInit {
   editarEvento(evento: Evento, template: any) {
     this.modoSalvar = 'put';
     this.openModal(template);
-    this.evento = evento;
-    this.registerForm.patchValue(evento);
+    this.evento = Object.assign({}, evento);
+    this.fileNameToUpdate = evento.imagemURL.toString();
+    this.evento.imagemURL = '';
+    this.registerForm.patchValue(this.evento);
   }
 
   novoEvento(template: any) {
@@ -70,24 +75,25 @@ export class EventosComponent implements OnInit {
     this.openModal(template);
   }
 
-excluirEvento(evento: Evento, template: any){
-  this.openModal(template);
-  this.evento = evento;
-  this.bodyDeletarEvento = `Pretendes mesmo exlcuír o Evento: ${evento.tema}, Código: ${evento.id}`;
-}
-
-confirmeDelete(template: any){
-this.eventoService.deleteEvento(this.evento.id).subscribe(
-  () => {
-    template.hide();
-    this.getEventos();
-    this.toastr.success('Removido com sucesso');
-  }, error => {
-    this.toastr.error('Erro ao tentar apagar');
-    console.log(error);
+  excluirEvento(evento: Evento, template: any) {
+    this.openModal(template);
+    this.evento = evento;
+    this.bodyDeletarEvento = `Pretendes mesmo exlcuír o Evento: ${evento.tema}, Código: ${evento.id}`;
   }
-);
-}
+
+  confirmeDelete(template: any) {
+    this.eventoService.deleteEvento(this.evento.id).subscribe(
+      () => {
+        template.hide();
+        this.getEventos();
+        this.toastr.success('Removido com sucesso');
+      },
+      (error) => {
+        this.toastr.error('Erro ao tentar apagar');
+        console.log(error);
+      }
+    );
+  }
 
   openModal(template: any) {
     this.registerForm.reset();
@@ -129,10 +135,46 @@ this.eventoService.deleteEvento(this.evento.id).subscribe(
     });
   }
 
+  onFileChange(event) {
+    const reader = new FileReader();
+
+    // se tem uma imagem como target e se o tamanho nao é minusculo... se é mesmo um ficheiro
+    if (event.target.files && event.target.files.length) {
+      this.file = event.target.files;
+      console.log(this.file);
+    }
+  }
+
+  uploadImagem() {
+    if (this.modoSalvar === 'post') {
+      const nomeArquivo = this.evento.imagemURL.split('\\', 3);
+      this.evento.imagemURL = nomeArquivo[2];
+
+      this.eventoService.postUpload(this.file, nomeArquivo[2]).
+      subscribe(
+        () => {
+          this.dataAtual = new Date().getMilliseconds().toString();
+          this.getEventos();
+        }
+      );
+    } else {
+      this.evento.imagemURL = this.fileNameToUpdate;
+      this.eventoService
+        .postUpload(this.file, this.fileNameToUpdate)
+        .subscribe(() => {
+          this.dataAtual = new Date().getMilliseconds().toString();
+          this.getEventos();
+        });
+    }
+  }
+
   salvarAlteracao(template: any) {
     if (this.registerForm.valid) {
       if (this.modoSalvar === 'post') {
         this.evento = Object.assign({}, this.registerForm.value);
+
+        this.uploadImagem();
+
         this.eventoService.postEvento(this.evento).subscribe(
           (novoEvento: Evento) => {
             template.hide();
@@ -144,13 +186,20 @@ this.eventoService.deleteEvento(this.evento.id).subscribe(
           }
         ); // subscribe porque é observable
       } else {
-        this.evento = Object.assign({id: this.evento.id}, this.registerForm.value);
+        this.evento = Object.assign(
+          { id: this.evento.id },
+          this.registerForm.value
+        );
+
+        this.uploadImagem();
+
         this.eventoService.putEvento(this.evento).subscribe(
           () => {
             template.hide();
             this.getEventos();
             this.toastr.success('Editado com sucesso');
-          }, (error) => {
+          },
+          (error) => {
             this.toastr.error(`Erro ao editar: ${error}`);
             // console.log(error);
           }

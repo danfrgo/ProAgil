@@ -19,12 +19,20 @@ getAllEvento(): Observable<Evento[]>{
 
 // eventos por tema
 getEventoByTema(tema: string): Observable<Evento[]>{
-  return this.http.get<Evento[]>('${this.baseURL}/getByTema/${tema}'); // criar URL
+  return this.http.get<Evento[]>(`${this.baseURL}/getByTema/${tema}`); // criar URL
 }
 
 // eventos por Id
 getEventoById(id: number): Observable<Evento[]>{
-  return this.http.get<Evento[]>('${this.baseURL}/${id}'); // criar URL
+  return this.http.get<Evento[]>(`${this.baseURL}/${id}`); // criar URL
+}
+
+postUpload(file: File, name: string){
+  const fileToUplaod = <File>file[0];
+  const formData = new FormData();
+  formData.append('file', fileToUplaod, name);
+
+  return this.http.post(`${this.baseURL}/upload`, FormData); // criar URL):
 }
 
 // criar eventos
@@ -32,10 +40,16 @@ postEvento(evento: Evento){
   return this.http.post(this.baseURL, evento); // criar URL , o evento ve do eventos.ts -> metodo salvarAlteracao
 }
 
-// update eventos
+
+/* update eventos
 putEvento(evento: Evento) {
   return this.http.put(`${this.baseURL}/${evento.id}`, evento); // criar URL , o evento ve do eventos.ts -> metodo salvarAlteracao
+} */
+
+putEvento(evento: Evento) {
+  return this.http.put(`${this.baseURL}/${evento.id}`, evento);
 }
+
 
 // apagar eventos
 deleteEvento(id: number) {
