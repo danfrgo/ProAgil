@@ -68,6 +68,7 @@ namespace ProAgil.WebAPI
                         {
                             // validador do emissor que é True (é a propria API)
                             ValidateIssuerSigningKey = true, // emissor (para validar pela configuraçao da chave do emissor)
+                           // esta é a parte que faz a descriptografia
                             IssuerSigningKey = new SymmetricSecurityKey(Encoding.ASCII
                                 .GetBytes(Configuration.GetSection("AppSettings:Token").Value)), // assinatura da chave do emissor
                             ValidateIssuer = false,

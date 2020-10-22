@@ -1,4 +1,4 @@
-import { HttpClient } from '@angular/common/http';
+import { HttpClient, HttpHeaders } from '@angular/common/http';
 import { Injectable } from '@angular/core';
 import { Observable } from 'rxjs';
 import { Evento } from '../_models/Evento';
@@ -10,11 +10,14 @@ import { Evento } from '../_models/Evento';
 export class EventoService {
   baseURL = 'http://localhost:5000/api/evento';
 
-constructor(private http: HttpClient) { }
+
+constructor(private http: HttpClient) { 
+
+}
 
 // todos os eventos
 getAllEvento(): Observable<Evento[]>{
-  return this.http.get<Evento[]>(this.baseURL);
+  return this.http.get<Evento[]>(this.baseURL) ;
 }
 
 // eventos por tema
@@ -27,6 +30,7 @@ getEventoById(id: number): Observable<Evento[]>{
   return this.http.get<Evento[]>(`${this.baseURL}/${id}`); // criar URL
 }
 
+// post imagens
 postUpload(file: File, name: string){
   const fileToUplaod = <File>file[0];
   const formData = new FormData();
